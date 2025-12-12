@@ -79,7 +79,7 @@ class IntentParser:
         r'\bbrief(ly)?\b',
         r'\bshort\b',
         r'\bsummary\b',
-        r'\bovervi\ew\b',
+        r'\boverview\b',
         r'\btl;?dr\b',
         r'\bjust\s+the\s+(basics|gist|highlights)\b',
     ]
