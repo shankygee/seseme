@@ -1,0 +1,46 @@
+# API Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+websockets==12.0
+
+# AI/ML Models
+torch==2.4.0
+torchaudio==2.4.0
+transformers==4.49.0
+huggingface_hub==0.28.1
+
+# Speech-to-Text
+openai-whisper==20231117
+faster-whisper==1.0.1
+
+# LLM
+anthropic==0.40.0
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+numpy==1.26.4
+
+# CSM Dependencies (from parent project)
+moshi==0.2.2
+torchtune==0.4.0
+torchao==0.9.0
+tokenizers==0.21.0
+silentcipher @ git+https://github.com/facebookresearch/audioseal.git
+
+# Database & Caching
+redis==5.0.1
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+httpx==0.26.0
+aiofiles==23.2.1
+
+# Background Tasks
+celery==5.3.4

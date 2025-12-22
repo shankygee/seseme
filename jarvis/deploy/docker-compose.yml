@@ -1,0 +1,103 @@
+# Jarvis AI Assistant - Docker Compose Configuration
+# For local development and production deployment
+
+version: '3.8'
+
+services:
+  # Main Jarvis API Server
+  jarvis-api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: jarvis-assistant:latest
+    container_name: jarvis-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVICE=cuda
+      - WHISPER_MODEL=large-v3
+      - USE_FASTER_WHISPER=true
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_MODEL=claude-sonnet-4-20250514
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql+asyncpg://jarvis:jarvis@postgres:5432/jarvis
+      - DEBUG=false
+    volumes:
+      - model-cache:/home/jarvis/.cache
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  # Redis for session/conversation storage
+  redis:
+    image: redis:7-alpine
+    container_name: jarvis-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for persistent storage
+  postgres:
+    image: postgres:15-alpine
+    container_name: jarvis-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=jarvis
+      - POSTGRES_PASSWORD=jarvis
+      - POSTGRES_DB=jarvis
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jarvis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx reverse proxy (optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: jarvis-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - jarvis-api
+    profiles:
+      - production
+
+volumes:
+  model-cache:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
